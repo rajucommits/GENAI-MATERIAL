@@ -1,0 +1,68 @@
+{
+  "queries": [
+    {
+      "english": "Show all customers from the city of Sao Paulo.",
+      "sql": "SELECT * FROM ecommerce.customers WHERE customer_city = 'Sao Paulo';"
+    },
+    {
+      "english": "List all products with a weight greater than 1000 grams.",
+      "sql": "SELECT product_id, product_category_name, product_weight_g FROM ecommerce.products WHERE product_weight_g > 1000;"
+    },
+    {
+      "english": "Get all orders placed on January 1, 2025.",
+      "sql": "SELECT * FROM ecommerce.orders WHERE DATE(order_purchase_timestamp) = '2025-01-01';"
+    },
+    {
+      "english": "Show the names and cities of customers who placed orders that were delivered.",
+      "sql": "SELECT c.customer_id, c.customer_city FROM ecommerce.customers c JOIN ecommerce.orders o ON c.customer_id = o.customer_id WHERE o.order_status = 'Delivered';"
+    },
+    {
+      "english": "List all order items along with their product categories.",
+      "sql": "SELECT oi.order_id, oi.product_id, p.product_category_name FROM ecommerce.order_items oi JOIN ecommerce.products p ON oi.product_id = p.product_id;"
+    },
+    {
+      "english": "Count the number of orders per customer state.",
+      "sql": "SELECT c.customer_state, COUNT(o.order_id) AS order_count FROM ecommerce.customers c JOIN ecommerce.orders o ON c.customer_id = o.customer_id GROUP BY c.customer_state;"
+    },
+    {
+      "english": "Find the total payment value for each payment type.",
+      "sql": "SELECT payment_type, SUM(payment_value) AS total_payment FROM ecommerce.order_payments GROUP BY payment_type;"
+    },
+    {
+      "english": "Show the average review score for orders by product category.",
+      "sql": "SELECT p.product_category_name, AVG(or.review_score) AS avg_review_score FROM ecommerce.order_reviews or JOIN ecommerce.order_items oi ON or.order_id = oi.order_id JOIN ecommerce.products p ON oi.product_id = p.product_id GROUP BY p.product_category_name;"
+    },
+    {
+      "english": "List customers who have placed more than one order.",
+      "sql": "SELECT c.customer_id, c.customer_city FROM ecommerce.customers c WHERE c.customer_id IN (SELECT customer_id FROM ecommerce.orders GROUP BY customer_id HAVING COUNT(order_id) > 1);"
+    },
+    {
+      "english": "Find orders where the payment value exceeds the average payment value for credit_card payments.",
+      "sql": "SELECT op.order_id, op.payment_value FROM ecommerce.order_payments op WHERE op.payment_type = 'credit_card' AND op.payment_value > (SELECT AVG(payment_value) FROM ecommerce.order_payments WHERE payment_type = 'credit_card');"
+    },
+    {
+      "english": "Show sellers who have sold products in categories with more than 10 products.",
+      "sql": "SELECT DISTINCT s.seller_id, s.seller_city FROM ecommerce.sellers s JOIN ecommerce.order_items oi ON s.seller_id = oi.seller_id JOIN ecommerce.products p ON oi.product_id = p.product_id WHERE p.product_category_name IN (SELECT product_category_name FROM ecommerce.products GROUP BY product_category_name HAVING COUNT(product_id) > 10);"
+    },
+    {
+      "english": "List the top 5 cities with the highest total order value, including freight.",
+      "sql": "SELECT c.customer_city, SUM(oi.price + oi.freight_value) AS total_order_value FROM ecommerce.customers c JOIN ecommerce.orders o ON c.customer_id = o.customer_id JOIN ecommerce.order_items oi ON o.order_id = oi.order_id GROUP BY c.customer_city ORDER BY total_order_value DESC LIMIT 5;"
+    },
+    {
+      "english": "Find orders delivered late (after the estimated delivery date) in 2025.",
+      "sql": "SELECT order_id, order_delivered_customer_date, order_estimated_delivery_date FROM ecommerce.orders WHERE order_delivered_customer_date > order_estimated_delivery_date AND EXTRACT(YEAR FROM order_purchase_timestamp) = 2025;"
+    },
+    {
+      "english": "Show the number of orders per seller for sellers who have closed deals in the technology business segment.",
+      "sql": "SELECT s.seller_id, s.seller_city, COUNT(o.order_id) AS order_count FROM ecommerce.sellers s JOIN ecommerce.order_items oi ON s.seller_id = oi.seller_id JOIN ecommerce.orders o ON oi.order_id = o.order_id WHERE s.seller_id IN (SELECT seller_id FROM marketing.closed_deals WHERE business_segment = 'technology') GROUP BY s.seller_id, s.seller_city;"
+    },
+    {
+      "english": "List customers who gave a review score of 5 for orders containing products from categories with English translations.",
+      "sql": "SELECT DISTINCT c.customer_id, c.customer_city FROM ecommerce.customers c JOIN ecommerce.orders o ON c.customer_id = o.customer_id JOIN ecommerce.order_reviews or ON o.order_id = or.order_id JOIN ecommerce.order_items oi ON o.order_id = oi.order_id JOIN ecommerce.products p ON oi.product_id = p.product_id JOIN ecommerce.product_category_name_translations pcnt ON p.product_category_name = pcnt.product_category_name WHERE or.review_score = 5 AND pcnt.product_category_name_english IS NOT NULL;"
+    },
+    {
+      "english": "why the sales for esporte_lazer category going down?",
+      "": ""
+    }
+  ]
+}

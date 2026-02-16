@@ -1,0 +1,175 @@
+#############
+Calculate the RFM (Recency, Frequency, Monetary) score for each customer
+Recency: How recently a customer has made a purchase
+Frequency: How often a customer makes a purchase
+Monetary Value: How much money a customer spends on purchases
+#############
+Generate features for predicting review scores based on order and delivery metrics
+#############
+why the sales for esporte_lazer category going down?
+#############
+List all orders where the review_score is less than 3 and the payment_value is greater than 100
+#############
+Which cities have the most sellers?
+#############
+Find the top 5 product categories with the highest total sales value
+#############
+For each marketing qualified lead, what is the date of first contact and the total number of closed deals associated with that lead?
+#############
+What is the average freight_value for orders delivered to each state?
+#############
+Build a cohort analysis showing customer retention by acquisition month and state
+#############
+Show the sales funnel from marketing qualified leads to closed deals to actual orders
+############
+Show sellers with high sales but poor delivery performance
+############
+
+
+
+################################
+Customer Questions:
+
+"Show all customers from California"
+"List customers in city 'São Paulo'"
+"How many unique customers do we have?"
+"Find all customers with zip code prefix '12345'"
+
+Order Questions:
+
+"Show all delivered orders"
+"List orders placed in the last 30 days"
+"What are the different order statuses?"
+"Count orders by status"
+
+Product Questions:
+
+"List all products in the 'electronics' category"
+"Show products with more than 5 photos"
+"Find products heavier than 1000 grams"
+"Which products have the longest descriptions?"
+
+Review Questions:
+
+"Show all 5-star reviews"
+"List reviews with comments"
+"Count reviews by score"
+
+Medium Complexity (2-3 Tables with JOINs)
+Order Analysis:
+
+"Show customer names with their order counts"
+"List all products purchased by customers from New York"
+"What is the total order value for each customer?"
+"Show orders with their payment methods"
+
+Product Performance:
+
+"Which products have the best average review scores?"
+"List top 10 products by number of orders"
+"Show product categories with their English translations"
+"What is the average price of products in each category?"
+
+Geographic Analysis:
+
+"Show total sales by customer city"
+"List sellers and their geographic coordinates"
+"Which cities have the most sellers?"
+
+Payment Analysis:
+
+"What are the most popular payment types?"
+"Show average payment installments by product category"
+"List orders paid with credit card in multiple installments"
+
+Complex Queries (Multiple Tables, Aggregations, CTEs)
+Sales Trends:
+
+"What is the monthly sales trend for the 'electronics' category over the last year?"
+"Compare this month's sales with last month's sales by product category"
+"Which product categories are growing and which are declining?"
+
+Customer Behavior:
+
+"Find customers who made purchases in consecutive months"
+"Which customers have the highest lifetime value including freight costs?"
+"Show customer retention rate by state"
+
+Seller Performance:
+
+"Rank sellers by total revenue including freight"
+"Which sellers have the best average product ratings?"
+"Show seller performance by geographic region"
+
+Review Analysis:
+
+"What is the correlation between delivery time and review scores?"
+"Which product categories have the most review comments?"
+"Show the average time between order delivery and review submission"
+
+Cross-Domain Analysis:
+
+"How many marketing qualified leads converted to actual customers?"
+"What is the average order value for customers acquired through marketing campaigns?"
+"Show conversion rate from leads to closed deals by business segment"
+
+Very Complex Queries (Advanced Analytics)
+Time-based Analysis:
+
+"Show the customer acquisition cost trend over the last 6 months"
+"What is the seasonal sales pattern for each product category?"
+"Calculate month-over-month growth rate for each seller"
+
+Geographic Intelligence:
+
+"Which shipping routes (seller city to customer city) have the longest delivery times?"
+"Show heatmap data for order density by geographic coordinates"
+"Calculate average shipping cost by distance between seller and customer"
+
+Business Intelligence:
+
+"What is the customer churn rate and which factors correlate with it?"
+"Show product recommendation based on customers who bought similar items"
+"Calculate the RFM (Recency, Frequency, Monetary) score for each customer"
+
+Performance Optimization:
+
+"Which products have high cart abandonment rates (ordered but not delivered)?"
+"Identify products with declining sales but improving reviews"
+"Show sellers with high sales but poor delivery performance"
+
+Marketing Analytics:
+
+"What is the ROI of marketing campaigns based on lead conversion and order values?"
+"Which lead sources result in the highest customer lifetime value?"
+"Show the sales funnel from marketing qualified leads to closed deals to actual orders"
+
+Predictive Analytics Setup:
+
+"Create a dataset for predicting customer lifetime value based on first purchase behavior"
+"Generate features for predicting review scores based on order and delivery metrics"
+"Build a cohort analysis showing customer retention by acquisition month and state"
+
+############
+Some other questions you can think about
+
+	1.	What is the total declared_monthly_revenue from closed deals for leads that originated from paid_search?
+	•	(Join: marketing.closed_deals with marketing.marketing_qualified_leads on mql_id)
+	2.	List all customer cities and the total number of orders placed by customers in each city.
+	•	(Join: ecommerce.customers with ecommerce.orders on customer_id)
+	3.	For each product category, what is the total payment_value for all orders that included products from that category?
+	•	(Join: ecommerce.order_items → ecommerce.products on product_id, then join to ecommerce.orders and ecommerce.order_payments via order_id)
+	4.	What is the average review_score for orders delivered to customers in a specific state?
+	•	(Join: ecommerce.orders → ecommerce.order_reviews on order_id, then join to ecommerce.customers on customer_id)
+	5.	Which sellers closed the most deals in the ‘car_accessories’ business segment?
+	•	(Use: marketing.closed_deals, filter on business_segment, group by seller_id)
+	6.	Find the top 5 product categories with the highest total sales value.
+	•	(Join: ecommerce.order_items → ecommerce.products on product_id, aggregate on price * quantity by product_category_name)
+	7.	For each order, what is the order status, customer city, and total payment_value?
+	•	(Join: ecommerce.orders with ecommerce.customers on customer_id, and ecommerce.order_payments on order_id)
+	8.	List all orders where the review_score is less than 3 and the payment_value is greater than 100.
+	•	(Join: ecommerce.orders with ecommerce.order_reviews on order_id, and ecommerce.order_payments on order_id)
+	9.	What is the average freight_value for orders delivered to each state?
+	•	(Join: ecommerce.order_items → ecommerce.orders on order_id, then join to ecommerce.customers on customer_id, aggregate by customer_state)
+	10.	For each marketing qualified lead, what is the date of first contact and the total number of closed deals associated with that lead?
+	•	(Join: marketing.marketing_qualified_leads with marketing.closed_deals on mql_id, group by mql_id and first_contact_date)

@@ -1,0 +1,33 @@
+{
+    "sql_queries": {
+        "schema_query": "SELECT cols.column_name, cols.data_type, pgdesc.description FROM information_schema.columns cols LEFT JOIN pg_catalog.pg_class pgclass ON cols.table_name = pgclass.relname LEFT JOIN pg_catalog.pg_namespace pgns ON pgclass.relnamespace = pgns.oid LEFT JOIN pg_catalog.pg_attribute pgattr ON pgclass.oid = pgattr.attrelid AND cols.column_name = pgattr.attname LEFT JOIN pg_catalog.pg_description pgdesc ON pgattr.attrelid = pgdesc.objoid AND pgattr.attnum = pgdesc.objsubid WHERE cols.table_schema = %s AND cols.table_name = %s",
+        "table_description_query": "SELECT obj_description(pgclass.oid, 'pg_class') FROM pg_catalog.pg_class pgclass JOIN pg_catalog.pg_namespace pgns ON pgclass.relnamespace = pgns.oid WHERE pgns.nspname = %s AND pgclass.relname = %s"
+    },
+    "prompts": {
+        "table_description": "{domain_context}\n\nThe table {schema_name}.{table_name} does not have a description. Provide a concise and meaningful description for this table based on its name and domain.",
+        "column_description": "{domain_context}\n\nTable description: {table_description}\n\nYou are a metadata documentation assistant. For the table {schema_name}.{table_name}, generate a concise, meaningful, and user-friendly description for the column {column_name} with data type {data_type}. Here are sample values for this column: {sample_values}. If the sample values suggest that the column's data may be in Spanish, explicitly mention in the description that the values of this column can be in Spanish. Use the table description, column name, data type, and sample values to accurately describe what this column represents and its typical use in the dataset. Return only the column description as output. Do not include any explanations, formatting, or extra text."
+    },
+    "domains": {
+        "ecommerce": {
+            "context": "This database contains tables related to an e-commerce platform. Common entities include: Customers (user details, orders, addresses, preferences), Orders (products, payments, shipping info, reviews), Products (categories, pricing, inventory, sellers), Transactions (payments, refunds), Locations (geographical details of customers and sellers).",
+            "tables": [
+                "ecommerce.customers",
+                "ecommerce.geolocation",
+                "ecommerce.order_items",
+                "ecommerce.order_payments",
+                "ecommerce.order_reviews",
+                "ecommerce.orders",
+                "ecommerce.products",
+                "ecommerce.sellers",
+                "ecommerce.product_category_name_translations"
+            ]
+        },
+        "marketing": {
+            "context": "This database contains tables related to a marketing platform. Common entities include: Leads (prospective customers for marketing campaigns), Deals (closed sales or business deals resulting from marketing efforts).",
+            "tables": [
+                "marketing.closed_deals",
+                "marketing.marketing_qualified_leads"
+            ]
+        }
+    }
+}
