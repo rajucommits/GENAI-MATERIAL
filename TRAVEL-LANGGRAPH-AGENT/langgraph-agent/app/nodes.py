@@ -102,3 +102,16 @@ def activity_agent(state: TravelState):
 def budget_warning_node(state: TravelState):
     logger.warning(f"--- ⚠️ OVER BUDGET: ${abs(state.get('remaining_budget', 0))} ---")
     return {}
+
+import uuid
+
+def booking_node(state: TravelState):
+    # Generate a professional reference ID
+    # Use this ID later to retrieve state: graph.get_state({"configurable": {"thread_id": ref}})
+    ref_id = f"TRV-{uuid.uuid4().hex[:6].upper()}"
+    
+    return {
+        "booking_reference": ref_id,
+        "is_booked": True,
+        "remaining_budget": state["remaining_budget"] # Final math check
+    }

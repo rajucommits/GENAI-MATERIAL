@@ -73,13 +73,31 @@ async def start():
 async def handle_message(message: cl.Message):
     thread_id = cl.user_session.get("thread_id")
     user_input = message.content.strip()
-
+    
+    if user_input.lower().startswith("/retrieve"):
+            parts = user_input.split(" ")
+            if len(parts) < 2:
+                await cl.Message(content="⚠️ Please provide the ID. Example: `/retrieve TRV-A1B2C3`").send()
+                return
+            
+            ref_id = parts[1].strip()
+            # We use the Ref ID as the thread_id to fetch that specific state
+            payload = {"thread_id": ref_id, "action": "retrieve"}
+            try:
+                res_data = await call_agent(payload)
+                await cl.Message(content=f"🔍 Retrieving itinerary for `{ref_id}`...").send()
+                await process_agent_response(res_data)
+            except:
+                await cl.Message(content="❌ Reference ID not found.").send()
+            return
+        
     # 1. Budget Adjustment Shortcut (Keep this for quick updates)
     if user_input.replace('.', '', 1).isdigit():
         payload = {"thread_id": thread_id, "action": "fix_budget", "data": {"total_budget": float(user_input)}}
         res_data = await call_agent(payload)
         await process_agent_response(res_data)
         return
+
 
     # 2. Retrieve existing data from session or initialize fresh
     current_data = cl.user_session.get("travel_data", {
@@ -133,36 +151,67 @@ async def handle_message(message: cl.Message):
         await process_agent_response(res_data)
     except Exception as e:
         await cl.Message(content=f"⚠️ Agent Error: {e}").send()
+        
+# async def process_agent_response(res_data):
+#     """UI Rendering Logic"""
+#     # 1. Flight Buttons
+#     if "flight_options" in res_data and not res_data.get("selected_flight_price"):
+#         actions = [
+#             cl.Action(name="select_flight", label=f["info"], payload={"price": f['price']})
+#             for f in res_data["flight_options"]
+#         ]
+#         await cl.Message(content="✈️ **Select a Flight:**", actions=actions).send()
+
+#     # 2. Hotel Buttons (NO LONGER HARDCODED)
+#     elif "hotel_options" in res_data and not res_data.get("selected_hotel_price"):
+#         actions = [
+#             cl.Action(name="select_hotel", label=f"{h['name']} (${h['price']})", payload={"price": h['price']})
+#             for h in res_data["hotel_options"]
+#         ]
+#         await cl.Message(content="🏨 **Select a Hotel:**", actions=actions).send()
+
+#     # 3. Budget Alert
+#     elif res_data.get("remaining_budget", 0) < 0:
+#         over = abs(res_data['remaining_budget'])
+#         await cl.Message(content=f"❌ **Budget Alert!**\nYou are over by **${over:.2f}**. Please enter a new total budget.").send()
+
+#     # 4. Activities
+#     elif res_data.get("activities"):
+#         await cl.Message(content=f"✅ **Itinerary Ready!**\nRemaining Budget: **${res_data.get('remaining_budget', 0):.2f}**").send()
+#         # Activity card logic...
+#         for act in (res_data["activities"][0] if isinstance(res_data["activities"][0], list) else res_data["activities"])[:5]:
+#             img = [cl.Image(url=act['thumbnail'], display="inline")] if act.get('thumbnail') else []
+#             await cl.Message(content=f"**{act['title']}**\n{act.get('price', 'Free')}", elements=img).send()
+
+# --- UPDATED process_agent_response ---
 async def process_agent_response(res_data):
-    """UI Rendering Logic"""
-    # 1. Flight Buttons
+    # 1. Flight/Hotel Selection (Existing logic)
     if "flight_options" in res_data and not res_data.get("selected_flight_price"):
-        actions = [
-            cl.Action(name="select_flight", label=f["info"], payload={"price": f['price']})
-            for f in res_data["flight_options"]
-        ]
-        await cl.Message(content="✈️ **Select a Flight:**", actions=actions).send()
-
-    # 2. Hotel Buttons (NO LONGER HARDCODED)
+        # ... flight buttons ...
+        pass
     elif "hotel_options" in res_data and not res_data.get("selected_hotel_price"):
-        actions = [
-            cl.Action(name="select_hotel", label=f"{h['name']} (${h['price']})", payload={"price": h['price']})
-            for h in res_data["hotel_options"]
-        ]
-        await cl.Message(content="🏨 **Select a Hotel:**", actions=actions).send()
+        # ... hotel buttons ...
+        pass
 
-    # 3. Budget Alert
-    elif res_data.get("remaining_budget", 0) < 0:
-        over = abs(res_data['remaining_budget'])
-        await cl.Message(content=f"❌ **Budget Alert!**\nYou are over by **${over:.2f}**. Please enter a new total budget.").send()
+    # 2. HITL: If both picked but NOT booked, show Confirmation Card
+    elif res_data.get("selected_hotel_price") and not res_data.get("is_booked"):
+        summary = (
+            f"### 🛡️ Final Confirmation\n"
+            f"Ready to book your trip? \n"
+            f"- **Remaining Budget:** ${res_data.get('remaining_budget', 0):.2f}"
+        )
+        actions = [cl.Action(name="confirm_booking", label="✅ Book Now", value="confirm")]
+        await cl.Message(content=summary, actions=actions).send()
 
-    # 4. Activities
-    elif res_data.get("activities"):
-        await cl.Message(content=f"✅ **Itinerary Ready!**\nRemaining Budget: **${res_data.get('remaining_budget', 0):.2f}**").send()
-        # Activity card logic...
-        for act in (res_data["activities"][0] if isinstance(res_data["activities"][0], list) else res_data["activities"])[:5]:
-            img = [cl.Image(url=act['thumbnail'], display="inline")] if act.get('thumbnail') else []
-            await cl.Message(content=f"**{act['title']}**\n{act.get('price', 'Free')}", elements=img).send()
+    # 3. Post-Booking: Show Reference ID and Opt-in Sightseeing
+    elif res_data.get("is_booked"):
+        ref = res_data.get("booking_reference")
+        await cl.Message(content=f"🎉 **Booking Confirmed!**\nRef ID: `{ref}`\nKeep this ID to `/retrieve` your plan later.").send()
+        
+        # Check if we already showed activities to avoid double-printing
+        if res_data.get("activities") and not cl.user_session.get("activities_shown"):
+            actions = [cl.Action(name="show_spots", label="🎡 View Sightseeing Spots", value="show")]
+            await cl.Message(content="Would you like to see what's nearby?", actions=actions).send()
 
 # =========================================================
 # CALLBACKS
@@ -196,3 +245,22 @@ async def on_hotel(action: cl.Action):
     await cl.Message(content=f"🏨 Hotel selected: ${price}. Finalizing itinerary...").send()
     res = await call_agent(payload)
     await process_agent_response(res)
+    
+
+# --- NEW CALLBACKS ---
+@cl.action_callback("confirm_booking")
+async def on_confirm(action: cl.Action):
+    payload = {"thread_id": cl.user_session.get("thread_id"), "action": "confirm_booking"}
+    res = await call_agent(payload)
+    await process_agent_response(res)
+
+@cl.action_callback("show_spots")
+async def on_show_spots(action: cl.Action):
+    # Retrieve the state to get activities
+    payload = {"thread_id": cl.user_session.get("thread_id"), "action": "retrieve"}
+    res_data = await call_agent(payload)
+    
+    cl.user_session.set("activities_shown", True)
+    for act in res_data.get("activities", [])[:5]:
+        img = [cl.Image(url=act['thumbnail'], display="inline")] if act.get('thumbnail') else []
+        await cl.Message(content=f"**{act['title']}**\n{act.get('price', 'Free')}", elements=img).send()
