@@ -16,9 +16,17 @@ async def chat(payload: dict = Body(...)):
             graph.invoke(data, config)
         
         elif action == "select_prices":
-            # Update price and trigger budget_check node
+            # 1. Update the price (flight or hotel)
             graph.update_state(config, data)
+            
+            # 2. Re-run the budget calculation
+            # We use graph.invoke(None, config) to let it hit the 'booking_node' interrupt
             graph.invoke(None, config)
+            
+            # 3. Check if we are at the interrupt
+            state = graph.get_state(config)
+            if state.next: # If 'next' has a value, it means the graph is PAUSED at 'booking_node'
+                logger.info(f"Graph paused at: {state.next}")
 
         elif action == "confirm_booking":
             # Moves graph from breakpoint to END

@@ -181,7 +181,7 @@ async def process_agent_response(res_data):
             f"### 🛡️ Final Confirmation\n"
             f"Ready to book? Your remaining budget will be **${res_data.get('remaining_budget', 0):.2f}**."
         )
-        actions = [cl.Action(name="confirm_booking", label="✅ Confirm & Generate ID", value="confirm")]
+        actions = [cl.Action(name="confirm_booking", label="✅ Confirm & Generate ID", value="confirm",payload={})]
         await cl.Message(content=summary, actions=actions).send()
 
     # 5. Post-Booking: Reference ID & Sightseeing Toggle
@@ -190,7 +190,7 @@ async def process_agent_response(res_data):
         await cl.Message(content=f"🎉 **Booking Confirmed!**\nReference ID: `{ref}`\nUse `/retrieve {ref}` to see this later.").send()
         
         if res_data.get("activities") and not cl.user_session.get("activities_shown"):
-            actions = [cl.Action(name="show_spots", label="🎡 View Sightseeing Spots", value="show")]
+            actions = [cl.Action(name="show_spots", label="🎡 View Sightseeing Spots", value="show", payload={})]
             await cl.Message(content="Would you like to see local attractions?", actions=actions).send()
 
 # =========================================================
